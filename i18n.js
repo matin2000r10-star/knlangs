@@ -234,5 +234,13 @@ window.NOVIN_I18N = {
  "کد هدیه رو کپی کن": "Copy your gift code",
  "موقع ثبت‌نام استفاده کن": "Use it when you sign up",
  "کارت خراشیدنی؛ برای دیدن جایزه روی آن بکشید": "Scratch card — drag across it to reveal your prize",
- "نمایش جایزه بدون خراشیدن": "Show my prize without scratching"
+ "نمایش جایزه بدون خراشیدن": "Show my prize without scratching",
+ "مقدمه‌ی ورود به آموزشگاه": "Intro: walking into the academy",
+ "رد شدن از مقدمه": "Skip intro",
+ "هر سفر بزرگ، با یک قدم شروع می‌شود": "Every big journey starts with a single step",
+ "قدم بعدی، یاد گرفتن یک زبان تازه است": "The next step is learning a new language",
+ "به آموزشگاه زبان نوین خوش آمدید ✨": "Welcome to NOVIN Language Academy ✨",
+ "برای ورود اسکرول کنید": "Scroll to step inside",
+ "🎬 دیدن دوباره‌ی مقدمه": "🎬 Watch the intro again",
+ "دو کتاب کارتونی روی دامنه‌ی کوه به نور روی قله اشاره می‌کنند": "Two cartoon books on a mountainside pointing at the light on the summit"
 };

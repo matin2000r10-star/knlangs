@@ -17,6 +17,12 @@
     if (t) d.setAttribute("data-theme", t);
     else if (!d.hasAttribute("data-theme")) d.setAttribute("data-theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     if (l === "en") { d.lang = "en"; d.dir = "ltr"; }
+    // Scroll intro on every visit (never with reduced motion). The page always starts at the
+    // top, so the browser can't restore an old scroll position past the intro.
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      d.classList.add("intro-on");
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    }
   })();
 </script>
 </head>
@@ -134,6 +140,34 @@
 <canvas id="fxCanvas" aria-hidden="true"></canvas>
 
 <a class="skip" href="#main">رفتن به محتوای اصلی</a>
+
+<!-- ============ SCROLL INTRO (walking into the academy) ============ -->
+<section class="scroll-intro" id="scrollIntro" aria-label="مقدمه‌ی ورود به آموزشگاه">
+  <div class="si-stage">
+    <img class="si-img" id="siImg" alt="دو کتاب کارتونی روی دامنه‌ی کوه به نور روی قله اشاره می‌کنند" fetchpriority="high">
+    <div class="si-rays" id="siRays" aria-hidden="true"></div>
+    <div class="si-birds" id="siBirds" aria-hidden="true"><i><svg viewBox="0 0 40 16"><path d="M2 10q9-9 18 0q9-9 18 0" fill="none" stroke="#5b4a7a" stroke-width="2.6" stroke-linecap="round"/></svg></i><i><svg viewBox="0 0 40 16"><path d="M2 10q9-9 18 0q9-9 18 0" fill="none" stroke="#5b4a7a" stroke-width="2.6" stroke-linecap="round"/></svg></i><i><svg viewBox="0 0 40 16"><path d="M2 10q9-9 18 0q9-9 18 0" fill="none" stroke="#5b4a7a" stroke-width="2.6" stroke-linecap="round"/></svg></i></div>
+    <canvas class="si-fx" id="siFx" aria-hidden="true"></canvas>
+    <div class="si-petals" id="siPetals" aria-hidden="true"></div>
+    <div class="si-letters" id="siLetters" aria-hidden="true"></div>
+    <div class="si-glow" id="siGlow" aria-hidden="true"></div>
+    <div class="si-vignette" aria-hidden="true"></div>
+    <div class="si-top">
+      <span class="si-brand" dir="ltr"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40V10c0-3 3.6-4.4 5.6-2.2L34 32V10" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg><b>NOVIN</b></span>
+      <button class="si-skip" id="siSkip" type="button">رد شدن از مقدمه <svg class="ic arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+    </div>
+    <div class="si-hint" id="siHint" aria-hidden="true">
+      <span class="si-mouse"><i></i></span>
+      <span>برای ورود اسکرول کنید</span>
+      <small id="siLoad"></small>
+    </div>
+    <div class="si-climb" aria-hidden="true" dir="ltr">
+      <svg viewBox="0 0 240 44"><path id="siPath" d="M10 38C58 38 66 24 104 24S164 12 222 8" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/></svg>
+      <span class="sc-sun">☀️</span><span class="sc-book" id="siBook">📘</span>
+    </div>
+    <div class="si-white" id="siWhite" aria-hidden="true"></div>
+  </div>
+</section>
 
 <!-- ============ HEADER ============ -->
 <header class="site-header" id="top">

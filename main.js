@@ -880,8 +880,8 @@
       card.classList.remove("talking");
       if (!$(".hint", box)) box.insertAdjacentHTML("beforeend", `<span class="hint">${L("🔊 برای شنیدن صدا، یک بار روی تصویر کلیک کنید", "🔊 Click the picture once to hear it")}</span>`);
     };
-    if (isEn()) speak(text, { lang: "en-US", rate: .95, onend: done, onblocked: blocked });
-    else playClip(`assets/audio/fa-${key}.mp3`, { onend: done, onblocked: blocked });
+    // Each card has its own recorded voice: a girl, a teenage boy, a woman and a man
+    playClip(`assets/audio/${isEn() ? "en" : "fa"}-${key}.mp3`, { onend: done, onblocked: blocked });
   };
   $$(".course-card[data-course]").forEach((card) => {
     let dwell = null;
@@ -919,4 +919,192 @@
   addEventListener("resize", placeMoon);
   addEventListener("novin:lang", () => requestAnimationFrame(placeMoon));
   heroArt.querySelector("img").addEventListener("load", placeMoon);
+
+  /* ===================== Round 7: scroll-driven intro ===================== */
+  // Students walk into the academy as the visitor scrolls; the door opens onto the site.
+  const siSection = $("#scrollIntro");
+  if (siSection && root.classList.contains("intro-on")) {
+    // The camera flies into the light on the summit (52.3% across, 19% down the picture)
+    // A landscape picture for wide screens and a portrait one for phones.
+    // lx/ly is where the light on the summit sits in each picture.
+    const PICS = {
+      wide: { src: "assets/intro/peak-wide.webp", lx: .569, ly: .163, ar: 1672 / 941, lean: .38 },
+      tall: { src: "assets/intro/peak.webp", lx: .523, ly: .19, ar: 853 / 1280, lean: .28 },
+    };
+    const MAX_ZOOM = 16;
+    let pic = PICS.wide;
+    const img = $("#siImg"), glow = $("#siGlow"), lettersBox = $("#siLetters");
+    const hint = $("#siHint"), siLoad = $("#siLoad"), siWhite = $("#siWhite");
+    const rays = $("#siRays"), birds = $("#siBirds"), petals = $("#siPetals");
+    const book = $("#siBook"), climbPath = $("#siPath"), climbBox = $(".si-climb");
+    const fxCanvas = $("#siFx"), fx = fxCanvas.getContext("2d");
+    const M = 18; // overscan (px) that leaves room for the mouse parallax
+    let finished = false, W = 0, H = 0, bw = 0, bh = 0, bx = 0, by = 0, pCur = 0;
+    // Only finish after the visitor has really scrolled through (not on a jump to the end)
+    let watched = false;
+    scrollTo({ top: 0, behavior: "instant" });
+
+    const layout = () => {
+      W = innerWidth; H = innerHeight;
+      pic = W / H >= 1 ? PICS.wide : PICS.tall;
+      if (!img.src.endsWith(pic.src)) img.src = pic.src;
+      // the picture covers the screen; the crop leans left so both books stay in frame
+      bw = W + 2 * M; bh = bw / pic.ar;
+      if (bh < H + 2 * M) { bh = H + 2 * M; bw = bh * pic.ar; }
+      bx = -M + (W + 2 * M - bw) * pic.lean;
+      by = Math.min(-M, -M + (H + 2 * M - bh) * .3);
+      img.style.width = bw + "px"; img.style.height = bh + "px";
+      const fdpr = Math.min(devicePixelRatio || 1, 1.5);
+      fxCanvas.width = W * fdpr; fxCanvas.height = H * fdpr; fx.setTransform(fdpr, 0, 0, fdpr, 0, 0);
+    };
+    layout();
+    addEventListener("resize", layout);
+
+    const showLoad = () => { siLoad.textContent = img.complete ? "" : L("در حال بارگذاری…", "Loading…"); };
+    showLoad(); img.addEventListener("load", showLoad);
+
+    // Letters that stream out of the light towards the viewer
+    const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").concat(["ب", "پ", "س", "ن", "ا", "★", "♥"]);
+    const flyers = Array.from({ length: 22 }, (_, i) => {
+      const el = document.createElement("span");
+      el.textContent = glyphs[(i * 7) % glyphs.length];
+      el.style.color = ["#fff", "#fff7d6", "#ffe1f0", "#e6dcff"][i % 4];
+      lettersBox.appendChild(el);
+      return { el, a: (i / 22) * Math.PI * 2 + Math.random() * .4, r0: 18 + Math.random() * 40, k: .55 + Math.random() * .9, spin: (Math.random() - .5) * 120, d: Math.random() * .12 };
+    });
+
+    const progress = () => {
+      const r = siSection.getBoundingClientRect();
+      return Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
+    };
+    const smooth = (a2, b2, x) => { const t = Math.min(1, Math.max(0, (x - a2) / (b2 - a2))); return t * t * (3 - 2 * t); };
+
+    // Hand-off: the screen is pure white, the site fades in out of the light while the hero
+    // settles from a soft blur, and scrolling is held for a moment so momentum can't jump the page.
+    const finish = (quick) => {
+      if (finished) return;
+      finished = true;
+      const flash = document.createElement("div");
+      flash.className = "intro-flash";
+      if (quick) flash.style.opacity = "0";
+      document.body.appendChild(flash);
+      requestAnimationFrame(() => {
+        if (quick) { flash.style.transition = "opacity .45s ease"; flash.style.opacity = "1"; }
+        setTimeout(() => {
+          siSection.remove();
+          root.classList.remove("intro-on");
+          root.classList.add("arriving");
+          scrollTo({ top: 0, behavior: "instant" });
+          dispatchEvent(new Event("resize"));
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            flash.style.transition = ""; flash.style.opacity = "";
+            flash.classList.add("out");
+          }));
+          setTimeout(() => {
+            const centre = { getBoundingClientRect: () => ({ left: innerWidth / 2, top: innerHeight * .4, width: 0, height: 0 }) };
+            window.novinConfetti(centre);
+            setTimeout(() => window.novinConfetti(centre), 220);
+            showToast(L("👋 خوش اومدی به نوین!", "👋 Welcome to NOVIN!"));
+          }, 900);
+          setTimeout(() => { root.classList.remove("arriving"); scrollTo({ top: 0, behavior: "instant" }); }, 1200);
+          setTimeout(() => flash.remove(), 1900);
+        }, quick ? 480 : 120);
+      });
+    };
+    $("#siSkip").addEventListener("click", () => finish(true));
+
+    // ---- extra life: parallax, particles, petals ----
+    let mx = 0, my = 0, px = 0, py = 0, prevZoom = 1, lastScrollAt = 0;
+    if (finePointer) addEventListener("pointermove", (e) => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });
+    addEventListener("scroll", () => { lastScrollAt = performance.now(); }, { passive: true });
+    petals.innerHTML = Array.from({ length: 16 }, () =>
+      `<i style="left:${Math.random() * 100}%;--d:${9 + Math.random() * 8}s;--dl:${-Math.random() * 16}s;--sx:${-20 + Math.random() * 40}vw;scale:${.6 + Math.random() * .8}"></i>`).join("");
+    // a soft glowing dot, drawn once and reused for every particle
+    const dot = document.createElement("canvas");
+    dot.width = dot.height = 32;
+    { const d = dot.getContext("2d"), gr = d.createRadialGradient(16, 16, 0, 16, 16, 16);
+      gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.35, "rgba(255,240,200,.8)"); gr.addColorStop(1, "rgba(255,220,150,0)");
+      d.fillStyle = gr; d.fillRect(0, 0, 32, 32); }
+    const sparks = Array.from({ length: 70 }, () => ({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, s: 1.5 + Math.random() * 3.5, tw: Math.random() * 6.3, px: 0, py: 0 }));
+    const drawSparks = (cx, cy, zv, time) => {
+      fx.clearRect(0, 0, W, H);
+      const warp = Math.min(1, zv * 60);
+      sparks.forEach((sp) => {
+        const dx = sp.x - cx, dy = sp.y - cy, d = Math.hypot(dx, dy) || 1;
+        sp.px = sp.x; sp.py = sp.y;
+        // drift gently up towards the light; while zooming, rush outwards past the viewer
+        sp.x += dx * zv * 1.6 - dx / d * .12 + Math.sin(time / 900 + sp.tw) * .15;
+        sp.y += dy * zv * 1.6 - dy / d * .12 - .18;
+        if (sp.x < -20 || sp.x > W + 20 || sp.y < -20 || sp.y > H + 20 || (d < 8 && warp < .1)) {
+          if (warp > .1) { const a = Math.random() * 6.283, r = 6 + Math.random() * 60; sp.x = cx + Math.cos(a) * r; sp.y = cy + Math.sin(a) * r; }
+          else { sp.x = Math.random() * W; sp.y = H * (.35 + Math.random() * .7); }
+          sp.px = sp.x; sp.py = sp.y;
+        }
+        const alpha = .45 + .55 * Math.abs(Math.sin(time / 600 + sp.tw));
+        if (warp > .15) {
+          fx.strokeStyle = `rgba(255, 246, 220, ${alpha * warp})`;
+          fx.lineWidth = sp.s * .7; fx.lineCap = "round";
+          fx.beginPath(); fx.moveTo(sp.px - (sp.x - sp.px) * 2.5, sp.py - (sp.y - sp.py) * 2.5); fx.lineTo(sp.x, sp.y); fx.stroke();
+        } else {
+          fx.globalAlpha = alpha;
+          fx.drawImage(dot, sp.x - sp.s * 2, sp.y - sp.s * 2, sp.s * 4, sp.s * 4);
+          fx.globalAlpha = 1;
+        }
+      });
+    };
+    const pathLen = climbPath.getTotalLength();
+
+    const render = (p, time = performance.now()) => {
+      // idle "breathing" before the first scroll
+      const idle = p < .005 && time - lastScrollAt > 1500 ? 1 + .012 * Math.sin(time / 900) : 1;
+      const zoom = Math.exp(Math.log(MAX_ZOOM) * Math.pow(p, 1.7)) * idle;
+      px += (-mx * M - px) * .06; py += (-my * M - py) * .06;
+      const t = smooth(0, .6, p);
+      const LX = pic.lx, LY = pic.ly;
+      const lx0 = bx + LX * bw, ly0 = by + LY * bh;
+      const wantX = lx0 + (W / 2 - lx0) * t, wantY = ly0 + (H * .45 - ly0) * t;
+      // keep the picture covering the whole screen while the light drifts to the middle
+      const tx = Math.min(0, Math.max(W - bw * zoom, wantX - LX * bw * zoom + px));
+      const ty = Math.min(0, Math.max(H - bh * zoom, wantY - LY * bh * zoom + py));
+      const cx = tx + LX * bw * zoom, cy = ty + LY * bh * zoom;
+      img.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
+      glow.style.setProperty("--gx", cx + "px");
+      glow.style.setProperty("--gy", cy + "px");
+      glow.style.setProperty("--gr", 26 * Math.pow(zoom, 1.15) + "px");
+      glow.style.opacity = .35 + smooth(.05, .6, p) * .65;
+      const s0 = 0;
+      const R = Math.max(W, H) * .95, fade = smooth(s0 + .06, s0 + .2, p) * (1 - smooth(.72, .9, p));
+      flyers.forEach((f) => {
+        const q = Math.max(0, (p - s0) / (1 - s0) - f.d), dist = f.r0 + Math.pow(q, 1.4) * R * f.k;
+        const x = cx + Math.cos(f.a) * dist, y = cy + Math.sin(f.a) * dist;
+        f.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${.35 + q * 2.6 * f.k}) rotate(${q * f.spin}deg)`;
+        f.el.style.opacity = fade;
+      });
+      hint.classList.toggle("gone", p > .03);
+      siWhite.style.opacity = smooth(.8, .975, p);
+      // rotating sun rays around the light
+      rays.style.transform = `translate(${cx}px, ${cy}px) rotate(${time / 160}deg) scale(${.55 + Math.min(zoom, 8) * .12})`;
+      rays.style.opacity = (.55 + smooth(0, .5, p) * .45) * (1 - smooth(.85, .97, p));
+      birds.style.opacity = 1 - smooth(.08, .3, p);
+      petals.style.opacity = 1 - smooth(.35, .65, p);
+      // the little book climbing the path in the progress bar
+      const pt = climbPath.getPointAtLength(p * pathLen), sc = climbBox.clientWidth / 240;
+      book.style.transform = `translate(${pt.x * sc - 11}px, ${pt.y * sc - 26 - Math.abs(Math.sin(time / 140)) * (p > 0 && p < 1 && Math.abs(lastScrollAt - time) < 300 ? 5 : 0)}px) rotate(${-10 + Math.sin(time / 200) * 6}deg)`;
+      const zv = Math.max(0, (zoom - prevZoom) / zoom);
+      prevZoom = zoom;
+      drawSparks(cx, cy, zv, time);
+    };
+
+    const introLoop = (time) => {
+      if (finished) return;
+      const target = progress();
+      if (target < .6) watched = true;
+      pCur += (target - pCur) * .18;
+      if (Math.abs(target - pCur) < .0005) pCur = target;
+      render(pCur, time);
+      if (watched && target >= .985 && pCur > .965) { finish(false); return; }
+      requestAnimationFrame(introLoop);
+    };
+    requestAnimationFrame(introLoop);
+  }
 })();
