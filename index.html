@@ -97,13 +97,14 @@
     <ellipse cx="68" cy="128" rx="9" ry="5" fill="#ff7aa8" opacity=".35"/>
     <ellipse cx="132" cy="128" rx="9" ry="5" fill="#ff7aa8" opacity=".35"/>
     <!-- eyes -->
-    <g class="m-eyes">
+    <g class="m-eyes" style="opacity: var(--eo, 1)">
       <circle cx="78" cy="100" r="19" fill="#fff"/><circle cx="124" cy="100" r="19" fill="#fff"/>
       <g style="translate: var(--ex, 0px) var(--ey, 0px); transition: translate .12s ease-out">
         <circle cx="81" cy="103" r="10" fill="#1d1b3a"/><circle cx="121" cy="103" r="10" fill="#1d1b3a"/>
         <circle cx="85" cy="98" r="3.6" fill="#fff"/><circle cx="125" cy="98" r="3.6" fill="#fff"/>
       </g>
     </g>
+    <g style="opacity: var(--ec, 0)" fill="none" stroke="#3b3560" stroke-width="4" stroke-linecap="round"><path d="M66 102q12 9 24 0M112 102q12 9 24 0"/></g>
     <!-- glasses -->
     <circle cx="78" cy="100" r="23" fill="none" stroke="#3b3560" stroke-width="3.4"/>
     <circle cx="124" cy="100" r="23" fill="none" stroke="#3b3560" stroke-width="3.4"/>
@@ -115,8 +116,10 @@
     <!-- arms -->
     <path d="M32 140q-20 10-16 30" stroke="var(--m-spine,#f593b7)" stroke-width="9" fill="none" stroke-linecap="round"/>
     <circle cx="17" cy="172" r="8" fill="#fff"/>
-    <path d="M150 140q22 6 22 26" stroke="var(--m-spine,#f593b7)" stroke-width="9" fill="none" stroke-linecap="round"/>
-    <circle cx="172" cy="168" r="8" fill="#fff"/>
+    <g style="transform: rotate(var(--wave, 0deg)); transform-origin: 150px 140px">
+      <path d="M150 140q22 6 22 26" stroke="var(--m-spine,#f593b7)" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <circle cx="172" cy="168" r="8" fill="#fff"/>
+    </g>
     <!-- feet -->
     <ellipse cx="70" cy="198" rx="14" ry="8" fill="#fff"/><ellipse cx="122" cy="198" rx="14" ry="8" fill="#fff"/>
   </symbol>
@@ -162,8 +165,25 @@
       <small id="siLoad"></small>
     </div>
     <div class="si-climb" aria-hidden="true" dir="ltr">
-      <svg viewBox="0 0 240 44"><path id="siPath" d="M10 38C58 38 66 24 104 24S164 12 222 8" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/></svg>
-      <span class="sc-sun">☀️</span><span class="sc-book" id="siBook">📘</span>
+      <svg class="sc-svg" viewBox="0 0 260 64">
+        <defs>
+          <linearGradient id="scFill" x1="0" x2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset=".55" stop-color="#f472b6"/><stop offset="1" stop-color="#fbbf24"/></linearGradient>
+          <linearGradient id="scHill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity=".04"/></linearGradient>
+          <radialGradient id="scSunGlow"><stop offset="0" stop-color="#fff7d6"/><stop offset=".45" stop-color="#fde68a" stop-opacity=".9"/><stop offset="1" stop-color="#fbbf24" stop-opacity="0"/></radialGradient>
+        </defs>
+        <path d="M0 64 30 52 62 46 96 38 128 40 162 28 196 22 224 12 246 18 260 24V64Z" fill="url(#scHill)"/>
+        <path d="M118 64 150 44 176 52 206 38 236 46 260 40V64Z" fill="#fff" opacity=".12"/>
+        <path id="siPath" class="sc-track" d="M14 56C56 56 70 44 104 42S166 30 200 24 222 17 230 15"/>
+        <path id="siFill" class="sc-fill" d="M14 56C56 56 70 44 104 42S166 30 200 24 222 17 230 15"/>
+        <g class="sc-sunwrap" transform="translate(236 14)">
+          <circle r="16" fill="url(#scSunGlow)" class="sc-sun-glow"/>
+          <g class="sc-rays" stroke="#fde68a" stroke-width="2" stroke-linecap="round"><path d="M0-13v-4M0 13v4M-13 0h-4M13 0h4M-9-9l-3-3M9 9l3 3M-9 9l-3 3M9-9l3-3"/></g>
+          <circle r="7" fill="#fff3c4" stroke="#fbbf24" stroke-width="2"/>
+        </g>
+      </svg>
+      <svg class="sc-book" id="siBook" viewBox="0 0 200 220" style="--m-cover:#93c5fd;--m-spine:#60a5fa"><use href="#mascot"/></svg>
+      <span class="sc-pct" id="siPct">۰٪</span>
+      <div class="sc-trail" id="siTrail"></div>
     </div>
     <div class="si-white" id="siWhite" aria-hidden="true"></div>
   </div>
@@ -215,7 +235,8 @@
 <section class="hero">
   <div class="night-sky" id="nightSky" aria-hidden="true"><span class="moon"></span><i class="shooting-star"></i><i class="shooting-star s2"></i></div>
   <div class="hero-art" aria-hidden="true">
-    <img src="assets/hero.jpg" alt="" width="1280" height="853" fetchpriority="high">
+    <img class="hero-day" src="assets/hero.jpg" alt="" width="1280" height="853" fetchpriority="high">
+    <img class="hero-night" src="assets/hero-night.webp" alt="" width="1536" height="1024" decoding="async" fetchpriority="low">
     <span class="hello-bubble hb1" data-noi18n><b>Hello!</b></span>
     <span class="hello-bubble hb2" data-noi18n><b>سلام!</b></span>
     <span class="hello-bubble hb3" data-noi18n><b>Bonjour!</b></span>
@@ -819,6 +840,12 @@
 
 <!-- ============ FOOTER ============ -->
 <footer class="site-footer" id="contact">
+  <div class="footer-books" id="footerBooks" aria-hidden="true">
+    <span class="fb-bubble" id="fbBubble" data-noi18n></span>
+    <svg class="fb-book b1" viewBox="0 0 200 220" style="--m-cover:#ffb3cf;--m-spine:#f593b7"><use href="#mascot"/></svg>
+    <svg class="fb-book b2" viewBox="0 0 200 220" style="--m-cover:#93c5fd;--m-spine:#60a5fa"><use href="#mascot"/></svg>
+    <span class="fb-z"><i>z</i><i>z</i><i>Z</i></span>
+  </div>
   <div class="container footer-grid">
     <div class="f-brand">
       <a class="logo" href="#top" aria-label="NOVIN Language Academy">

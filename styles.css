@@ -1428,3 +1428,175 @@ html[dir="rtl"] .t-dot.is-active span::after { transform-origin: right; }
   .t-show .t-card:hover { transform: translateX(calc(var(--side) * 30%)) scale(.9); }
   .t-show .t-card { transform: translateX(calc(var(--side) * 30%)) scale(.9); }
 }
+
+/* =========================================================
+   Round 12 — hero seam fix, prettier climb, tasteful extras
+   ========================================================= */
+
+/* The hero picture fades out through its own mask instead of being covered by an overlay:
+   during the zoom/parallax animation the overlay could leave a 1px seam at the picture's edge. */
+@media (min-width: 861px) {
+  .hero-art {
+    -webkit-mask-image: linear-gradient(to left, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 12%);
+    -webkit-mask-composite: source-in;
+            mask-image: linear-gradient(to left, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 12%);
+            mask-composite: intersect;
+  }
+  html[dir="ltr"] .hero-art {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 12%);
+            mask-image: linear-gradient(to right, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 12%);
+  }
+}
+
+/* ---- Intro progress: a little blue book walking up a glowing mountain path ---- */
+.si-climb {
+  width: 300px; height: 70px; padding: 0 56px 0 10px; border-radius: 22px; overflow: visible;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .14));
+  border: 1px solid rgba(255, 255, 255, .55);
+  box-shadow: 0 12px 30px -12px rgba(70, 30, 90, .5), inset 0 1px 0 rgba(255, 255, 255, .6);
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+.si-climb .sc-svg { width: 100%; height: 100%; display: block; overflow: visible; border-radius: 22px 0 0 22px; }
+.sc-track { fill: none; stroke: rgba(255, 255, 255, .7); stroke-width: 2.5; stroke-dasharray: 1 7; stroke-linecap: round; }
+.sc-fill { fill: none; stroke: url(#scFill); stroke-width: 4.5; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(244, 114, 182, .6)); }
+
+.sc-rays { transform-origin: 0 0; animation: spin 9s linear infinite; }
+.sc-sun-glow { transform-origin: 0 0; animation: sunPulse 2.2s ease-in-out infinite; }
+@keyframes sunPulse { 50% { transform: scale(1.25); opacity: .75; } }
+.si-climb.near .sc-sun-glow { animation-duration: .9s; }
+.si-climb.near .sc-rays { animation-duration: 3s; }
+.si-climb .sc-book {
+  position: absolute; left: 0; top: 0; width: 26px; height: 29px; filter: drop-shadow(0 3px 4px rgba(40, 20, 80, .35));
+  animation: none; transition: none;
+}
+.sc-pct {
+  position: absolute; right: 12px; top: 50%; translate: 0 -50%; min-width: 40px; text-align: center;
+  font: 800 15px/1 "Vazirmatn", "Poppins", sans-serif; color: #fff; text-shadow: 0 1px 6px rgba(60, 20, 80, .55);
+  padding: 7px 8px; border-radius: 12px; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .4);
+}
+.si-climb.near .sc-pct { background: linear-gradient(135deg, #f472b6, #fbbf24); border-color: transparent; }
+.sc-trail { position: absolute; inset: 0; pointer-events: none; }
+.sc-trail i {
+  position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 50%;
+  background: radial-gradient(circle, #fff, #fde68a 60%, transparent 70%);
+  animation: trailFade .9s ease-out forwards;
+}
+@keyframes trailFade { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: translateY(-10px) scale(.2); } }
+@media (max-width: 640px) { .si-climb { width: 270px; height: 64px; } }
+
+/* ---- Tasteful extras across the site ---- */
+/* the logo's N draws itself in */
+.site-header .logo-mark path:first-child { stroke-dasharray: 120; stroke-dashoffset: 0; animation: drawN 1.4s .2s cubic-bezier(.65, 0, .35, 1) both; }
+html.arriving .site-header .logo-mark path:first-child { animation: drawN 1.4s .6s cubic-bezier(.65, 0, .35, 1) both; }
+@keyframes drawN { from { stroke-dashoffset: 120; } to { stroke-dashoffset: 0; } }
+
+/* a soft "breathing" halo on the main call to action */
+.hero-ctas .btn-primary { animation: ctaPulse 3.2s ease-out infinite 2.5s; }
+@keyframes ctaPulse {
+  0% { box-shadow: 0 10px 24px -8px rgba(109, 74, 255, .6), 0 0 0 0 rgba(139, 92, 246, .45); }
+  70%, 100% { box-shadow: 0 10px 24px -8px rgba(109, 74, 255, .6), 0 0 0 16px rgba(139, 92, 246, 0); }
+}
+
+/* headings wipe in, in the reading direction */
+:is(.section-head.reveal, .reveal .section-head, .dash-copy.reveal, .tools-copy.reveal, .gift-copy.reveal) h2 {
+  -webkit-mask-image: linear-gradient(to left, #000 40%, transparent 60%);
+          mask-image: linear-gradient(to left, #000 40%, transparent 60%);
+  -webkit-mask-size: 260% 100%; mask-size: 260% 100%;
+  -webkit-mask-position: 0 0; mask-position: 0 0;
+  transition: -webkit-mask-position 1.2s cubic-bezier(.22, .8, .25, 1) .1s, mask-position 1.2s cubic-bezier(.22, .8, .25, 1) .1s;
+}
+:is(.section-head.reveal.in, .reveal.in .section-head, .dash-copy.reveal.in, .tools-copy.reveal.in, .gift-copy.reveal.in) h2 {
+  -webkit-mask-position: 100% 0; mask-position: 100% 0;
+}
+html[dir="ltr"] :is(.section-head.reveal, .reveal .section-head, .dash-copy.reveal, .tools-copy.reveal, .gift-copy.reveal) h2 {
+  -webkit-mask-image: linear-gradient(to right, #000 40%, transparent 60%);
+          mask-image: linear-gradient(to right, #000 40%, transparent 60%);
+  -webkit-mask-position: 100% 0; mask-position: 100% 0;
+}
+html[dir="ltr"] :is(.section-head.reveal.in, .reveal.in .section-head, .dash-copy.reveal.in, .tools-copy.reveal.in, .gift-copy.reveal.in) h2 {
+  -webkit-mask-position: 0 0; mask-position: 0 0;
+}
+
+/* course cards tip up into place */
+.course-grid { perspective: 1200px; }
+.course-card.reveal:not(.in) { transform: rotateX(24deg) translateY(46px) scale(.95); transform-origin: 50% 100%; }
+
+/* a soft light follows the pointer across feature cards */
+:is(.why-grid li, .tool-list li) { position: relative; }
+:is(.why-grid li, .tool-list li)::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(139, 92, 246, .13), transparent 65%);
+}
+:is(.why-grid li, .tool-list li):hover::after { opacity: 1; }
+
+/* stats give a little pop when their count finishes */
+.stat-list li.counted b { animation: countPop .6s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes countPop { 40% { transform: scale(1.18); color: var(--violet); } }
+.stat-list li.counted .si { animation: jelly .7s .1s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header .logo-mark path:first-child, .hero-ctas .btn-primary { animation: none; }
+  :is(.section-head, .dash-copy, .tools-copy, .gift-copy) h2 { -webkit-mask-image: none !important; mask-image: none !important; }
+}
+
+/* =========================================================
+   Round 13 — night picture for the dark theme, goodbye books
+   ========================================================= */
+.hero-art .hero-night { position: absolute; inset: 0; opacity: 0; transition: opacity .9s ease; }
+[data-theme="dark"] .hero-art img { filter: none; }
+[data-theme="dark"] .hero-art .hero-day { filter: brightness(.62) saturate(.9); }
+[data-theme="dark"] .hero-art .hero-night { opacity: 1; }
+/* the night picture has its own moon and stars; keep only the fireflies on top */
+[data-theme="dark"] .night-sky :is(.moon, .star, .shooting-star) { display: none; }
+[data-theme="dark"] .hero-art::after {
+  background:
+    linear-gradient(to left, var(--bg) 0%, color-mix(in srgb, var(--bg) 85%, transparent) 10%, transparent 34%),
+    linear-gradient(to top, var(--bg) 0%, transparent 26%);
+}
+html[dir="ltr"][data-theme="dark"] .hero-art::after {
+  background:
+    linear-gradient(to right, var(--bg) 0%, color-mix(in srgb, var(--bg) 85%, transparent) 10%, transparent 34%),
+    linear-gradient(to top, var(--bg) 0%, transparent 26%);
+}
+
+/* Goodbye books sitting on the footer's top edge */
+@property --wave { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+.site-footer { position: relative; }
+.footer-books {
+  position: absolute; top: -62px; inset-inline-end: max(24px, calc(50% - 570px));
+  display: flex; align-items: flex-end; gap: 0; cursor: pointer; z-index: 2;
+}
+.fb-book { width: 62px; height: 68px; transform-origin: 50% 100%; animation: fbIdle 3.4s ease-in-out infinite; filter: drop-shadow(0 6px 6px rgba(40, 30, 90, .18)); }
+.fb-book.b2 { width: 56px; height: 62px; margin-inline-start: -10px; animation-delay: -1.7s; }
+.fb-book.b1 { rotate: -6deg; } .fb-book.b2 { rotate: 5deg; }
+@keyframes fbIdle { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-3px) scaleY(1.02); } }
+.footer-books.hello .fb-book { animation: fbHello 2.4s cubic-bezier(.3, 1.3, .5, 1) 1, fbIdle 3.4s ease-in-out 2.4s infinite; }
+.footer-books.hello .fb-book.b2 { animation-delay: .18s, 2.6s; }
+@keyframes fbHello {
+  0% { transform: translateY(0); --wave: 0deg; }
+  12% { transform: translateY(-16px); --wave: -125deg; }
+  24% { transform: translateY(0); --wave: -95deg; }
+  38% { --wave: -130deg; } 52% { --wave: -95deg; } 66% { --wave: -130deg; } 80% { --wave: -100deg; }
+  100% { transform: translateY(0); --wave: 0deg; }
+}
+.fb-bubble {
+  position: absolute; bottom: calc(100% + 8px); inset-inline-end: 6px; padding: 8px 14px; border-radius: 16px;
+  background: var(--surface); color: var(--navy); font-size: 13.5px; font-weight: 700; white-space: nowrap;
+  box-shadow: var(--shadow); opacity: 0; transform: translateY(8px) scale(.85); transform-origin: bottom center;
+  transition: opacity .3s var(--ease), transform .35s cubic-bezier(.3, 1.6, .5, 1); pointer-events: none;
+}
+.fb-bubble::after { content: ""; position: absolute; top: 100%; inset-inline-end: 28px; border: 8px solid transparent; border-top-color: var(--surface); border-bottom: 0; }
+.fb-bubble.show { opacity: 1; transform: none; }
+.fb-z { position: absolute; top: -6px; inset-inline-start: -4px; display: none; pointer-events: none; }
+.fb-z i { position: absolute; font: 800 14px/1 "Poppins", sans-serif; font-style: normal; color: #c4b5fd; opacity: 0; animation: zFloat 3s ease-in infinite; }
+.fb-z i:nth-child(2) { animation-delay: 1s; font-size: 17px; } .fb-z i:nth-child(3) { animation-delay: 2s; font-size: 21px; }
+@keyframes zFloat { 0% { transform: translate(0, 0) rotate(-10deg); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(-22px, -46px) rotate(10deg); opacity: 0; } }
+/* night: eyes closed, slow breathing, zZz */
+[data-theme="dark"] .fb-book { --eo: 0; --ec: 1; animation: fbSleep 3.6s ease-in-out infinite; }
+[data-theme="dark"] .footer-books.hello .fb-book { animation: fbSleep 3.6s ease-in-out infinite; }
+[data-theme="dark"] .fb-z { display: block; }
+@keyframes fbSleep { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.03, .97); } }
+[data-theme="dark"] .footer-books.stir .fb-book { animation: fbStir .6s ease-in-out, fbSleep 3.6s ease-in-out .6s infinite; }
+@keyframes fbStir { 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+@media (max-width: 640px) { .footer-books { top: -52px; } .fb-book { width: 52px; height: 57px; } .fb-book.b2 { width: 46px; height: 51px; } }
+@media (prefers-reduced-motion: reduce) { .fb-book, .fb-z i { animation: none !important; } }

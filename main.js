@@ -56,6 +56,7 @@
       const v = Math.round(target * (1 - Math.pow(1 - k, 3)));
       el.textContent = num(v);
       if (k < 1) requestAnimationFrame(tick);
+      else el.closest("li")?.classList.add("counted");
     };
     requestAnimationFrame(tick);
   };
@@ -268,10 +269,10 @@
     });
 
     // Hero image parallax
-    const heroImg = $(".hero-art img");
+    const heroImgs = $$(".hero-art img");
     $(".hero").addEventListener("pointermove", (e) => {
       const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
-      heroImg.style.translate = `${x * -18}px ${y * -12}px`;
+      heroImgs.forEach((im) => (im.style.translate = `${x * -18}px ${y * -12}px`));
     });
   }
 
@@ -1099,6 +1100,9 @@
       });
     };
     const pathLen = climbPath.getTotalLength();
+    const climbFill = $("#siFill"), climbPct = $("#siPct"), trail = $("#siTrail");
+    climbFill.style.strokeDasharray = pathLen;
+    let lastTrail = 0, lastPctShown = -1;
 
     const render = (p, time = performance.now()) => {
       // idle "breathing" before the first scroll
@@ -1134,8 +1138,25 @@
       birds.style.opacity = 1 - smooth(.08, .3, p);
       petals.style.opacity = 1 - smooth(.35, .65, p);
       // the little book climbing the path in the progress bar
-      const pt = climbPath.getPointAtLength(p * pathLen), sc = climbBox.clientWidth / 240;
-      book.style.transform = `translate(${pt.x * sc - 11}px, ${pt.y * sc - 26 - Math.abs(Math.sin(time / 140)) * (p > 0 && p < 1 && Math.abs(lastScrollAt - time) < 300 ? 5 : 0)}px) rotate(${-10 + Math.sin(time / 200) * 6}deg)`;
+      const svgBox = climbPath.ownerSVGElement.getBoundingClientRect(), boxR = climbBox.getBoundingClientRect();
+      const sc = svgBox.width / 260, ox = svgBox.left - boxR.left, oy = svgBox.top - boxR.top;
+      const pt = climbPath.getPointAtLength(p * pathLen);
+      const walking = p > 0 && p < 1 && time - lastScrollAt < 260;
+      const hop = walking ? Math.abs(Math.sin(time / 110)) * 4 : 0;
+      const bx2 = ox + pt.x * sc, by2 = oy + pt.y * sc;
+      book.style.transform = `translate(${bx2 - 13}px, ${by2 - 30 - hop}px) rotate(${walking ? Math.sin(time / 110) * 9 : Math.sin(time / 600) * 3}deg)`;
+      climbFill.style.strokeDashoffset = pathLen * (1 - p);
+      climbBox.classList.toggle("near", p > .8);
+      const pct = Math.round(p * 100);
+      if (pct !== lastPctShown) { lastPctShown = pct; climbPct.textContent = L(toFa(pct) + "٪", pct + "%"); }
+      // sparkly footprints behind the walking book
+      if (walking && time - lastTrail > 90) {
+        lastTrail = time;
+        const dotEl = document.createElement("i");
+        dotEl.style.left = bx2 + "px"; dotEl.style.top = by2 + "px";
+        trail.appendChild(dotEl);
+        setTimeout(() => dotEl.remove(), 900);
+      }
       const zv = Math.max(0, (zoom - prevZoom) / zoom);
       prevZoom = zoom;
       drawSparks(cx, cy, zv, time);
@@ -1153,4 +1174,37 @@
     };
     requestAnimationFrame(introLoop);
   }
+
+  /* ===================== Round 12: pointer light on feature cards ===================== */
+  if (finePointer && !reduceMotion) {
+    $$(".why-grid li, .tool-list li").forEach((card) => card.addEventListener("pointermove", (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", e.clientX - r.left + "px");
+      card.style.setProperty("--my", e.clientY - r.top + "px");
+    }));
+  }
+
+  /* ===================== Round 13: goodbye books in the footer ===================== */
+  // By day they hop and wave when the visitor reaches the bottom; by night they're asleep.
+  const fbBox = $("#footerBooks"), fbBubble = $("#fbBubble");
+  let fbTimer = null, fbLine = 0;
+  const fbSay = (text) => {
+    fbBubble.textContent = text;
+    fbBubble.classList.remove("show"); void fbBubble.offsetWidth; fbBubble.classList.add("show");
+    clearTimeout(fbTimer); fbTimer = setTimeout(() => fbBubble.classList.remove("show"), 2800);
+  };
+  const isNight = () => root.dataset.theme === "dark";
+  const fbWave = () => { fbBox.classList.remove("hello"); void fbBox.offsetWidth; fbBox.classList.add("hello"); };
+  new IntersectionObserver(([en]) => {
+    if (!en.isIntersecting) return;
+    if (isNight()) fbSay(L("شب بخیر 🌙", "Good night 🌙"));
+    else { fbWave(); fbSay(L("خداحافظ! به‌زودی می‌بینیمت 👋", "Bye! See you soon 👋")); }
+  }, { threshold: .25 }).observe($(".site-footer"));
+  const dayLines = [["تا بعد! 💜", "See you later! 💜"], ["منتظرت هستیم 📚", "We'll be waiting 📚"], ["یادگیری رو ادامه بده ✨", "Keep learning ✨"]];
+  fbBox.addEventListener("click", () => {
+    if (isNight()) { fbSay(L("هیس… ما خوابیم 😴", "Shh… we're sleeping 😴")); fbBox.classList.remove("stir"); void fbBox.offsetWidth; fbBox.classList.add("stir"); return; }
+    fbWave(); play("boing");
+    const [fa, en] = dayLines[fbLine++ % dayLines.length];
+    fbSay(L(fa, en));
+  });
 })();
