@@ -242,5 +242,7 @@ window.NOVIN_I18N = {
  "به آموزشگاه زبان نوین خوش آمدید ✨": "Welcome to NOVIN Language Academy ✨",
  "برای ورود اسکرول کنید": "Scroll to step inside",
  "🎬 دیدن دوباره‌ی مقدمه": "🎬 Watch the intro again",
- "دو کتاب کارتونی روی دامنه‌ی کوه به نور روی قله اشاره می‌کنند": "Two cartoon books on a mountainside pointing at the light on the summit"
+ "دو کتاب کارتونی روی دامنه‌ی کوه به نور روی قله اشاره می‌کنند": "Two cartoon books on a mountainside pointing at the light on the summit",
+ "نظرات زبان‌آموزان": "Student reviews",
+ "انتخاب نظر": "Choose a review"
 };

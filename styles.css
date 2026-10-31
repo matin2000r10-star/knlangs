@@ -1366,3 +1366,65 @@ html.arriving .site-header, html.arriving .hero { animation: arrive 1.7s cubic-b
 html.arriving .site-header { animation-name: arriveHeader; }
 @keyframes arrive { from { transform: scale(1.07); filter: blur(10px) brightness(1.25); } to { transform: none; filter: none; } }
 @keyframes arriveHeader { from { transform: translateY(-24px); opacity: 0; } 30% { opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Round 11 — intro glitch fixes */
+/* birds flap without ever folding flat into a line */
+@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(.45) translateY(2px); } }
+/* the climbing path sits on a frosted pill so it reads as a control, not a stray line */
+.si-climb {
+  width: 260px; height: 50px; padding: 4px 14px; box-sizing: border-box; border-radius: 999px;
+  background: rgba(255, 255, 255, .22); border: 1px solid rgba(255, 255, 255, .45);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 8px 24px -10px rgba(60, 20, 70, .45);
+}
+.si-climb svg { filter: none; }
+.sc-sun { right: 6px; top: -10px; }
+.sc-book { left: 14px; top: 4px; }
+
+/* Testimonials slideshow */
+.t-stage { position: relative; }
+.t-show { position: relative; display: grid; padding: 12px 0 6px; outline: none; touch-action: pan-y; user-select: none; }
+.t-show:focus-visible { outline: 3px solid rgba(109, 74, 255, .35); outline-offset: 6px; border-radius: var(--r-lg); }
+.t-show .t-card {
+  --side: 0;
+  grid-area: 1 / 1; justify-self: center; width: min(660px, 100%); padding: 34px 36px;
+  opacity: 0; visibility: hidden; pointer-events: none; z-index: 1; filter: blur(3px);
+  transform: translateX(calc(var(--side) * 54%)) scale(.78);
+  transition: transform .75s cubic-bezier(.22, .8, .25, 1), opacity .6s ease, filter .6s ease, visibility .75s, box-shadow .6s;
+}
+.t-show .t-card.is-next { --side: 1; }
+.t-show .t-card.is-prev { --side: -1; }
+html[dir="rtl"] .t-show .t-card.is-next { --side: -1; }
+html[dir="rtl"] .t-show .t-card.is-prev { --side: 1; }
+.t-show .t-card.is-next, .t-show .t-card.is-prev { visibility: visible; opacity: .42; pointer-events: auto; cursor: pointer; z-index: 2; }
+.t-show .t-card.is-active { opacity: 1; visibility: visible; pointer-events: auto; z-index: 3; filter: none; transform: none; box-shadow: var(--shadow-lg); }
+.t-show .t-card:hover { transform: translateX(calc(var(--side) * 54%)) scale(.8); }
+.t-show .t-card.is-active:hover { transform: translateY(-4px); }
+.t-show .t-card.is-next:hover, .t-show .t-card.is-prev:hover { opacity: .7; }
+.t-show .t-card blockquote { font-size: 16.5px; }
+.t-show .t-card.is-active blockquote { animation: quoteIn .8s .2s both; }
+.t-show .t-card.is-active .stars { animation: starsIn .7s .1s both; }
+.t-show .t-card.is-active .avatar { animation: jelly .7s .35s both; }
+@keyframes quoteIn { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes starsIn { from { opacity: 0; letter-spacing: 10px; } to { opacity: 1; letter-spacing: 2px; } }
+
+.t-dots { display: flex; justify-content: center; gap: 2px; margin-top: 18px; }
+.t-dot { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 999px; transition: width .45s var(--ease); }
+.t-dot span { position: relative; display: block; width: 10px; height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; transition: width .45s var(--ease), background .3s; }
+.t-dot:hover span { background: #c4b5fd; }
+.t-dot.is-active { width: 52px; }
+.t-dot.is-active span { width: 40px; background: color-mix(in srgb, var(--violet) 22%, transparent); }
+.t-dot.is-active span::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--grad);
+  transform-origin: left; animation: dotFill 5.5s linear forwards;
+}
+html[dir="rtl"] .t-dot.is-active span::after { transform-origin: right; }
+.t-stage.paused .t-dot.is-active span::after { animation-play-state: paused; }
+@keyframes dotFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .t-dot.is-active span::after { animation: none; transform: none; } }
+
+@media (max-width: 760px) {
+  .t-show .t-card { padding: 26px 22px; }
+  .t-show .t-card.is-next, .t-show .t-card.is-prev { opacity: 0; visibility: hidden; pointer-events: none; }
+  .t-show .t-card:hover { transform: translateX(calc(var(--side) * 30%)) scale(.9); }
+  .t-show .t-card { transform: translateX(calc(var(--side) * 30%)) scale(.9); }
+}

@@ -91,12 +91,69 @@
     if (ok) window.novinConfetti?.(b);
   }));
 
-  // Testimonials slider
-  const track = $("#tTrack");
-  const step = () => track.firstElementChild.getBoundingClientRect().width + 24;
-  // In RTL, scrolling "forward" moves toward negative scrollLeft
-  $("#tNext").addEventListener("click", () => track.scrollBy({ left: fwd() * step(), behavior: "smooth" }));
-  $("#tPrev").addEventListener("click", () => track.scrollBy({ left: -fwd() * step(), behavior: "smooth" }));
+  // Testimonials slideshow: one review in the middle, its neighbours peeking at the sides
+  const track = $("#tTrack"), slides = $$(".t-card", track), dotsBox = $("#tDots");
+  const SLIDE_MS = 5500;
+  let cur = 0, slideTimer = null, slideStart = 0, slideLeft = SLIDE_MS, hovering = false, inView = false;
+  dotsBox.innerHTML = slides.map((_, i) => `<button class="t-dot" type="button" role="tab" data-i="${i}"><span></span></button>`).join("");
+  const dots = $$(".t-dot", dotsBox);
+  const labelDots = () => dots.forEach((d, i) =>
+    d.setAttribute("aria-label", L(`نظر ${toFa(i + 1)} از ${toFa(slides.length)}`, `Review ${i + 1} of ${slides.length}`)));
+  labelDots();
+  const slidesRunning = () => !reduceMotion && inView && !hovering && !document.hidden;
+  const schedule = () => {
+    clearTimeout(slideTimer);
+    track.parentElement.classList.toggle("paused", !slidesRunning());
+    if (!slidesRunning()) return;
+    slideStart = performance.now();
+    slideTimer = setTimeout(() => showSlide(cur + 1), slideLeft);
+  };
+  const pauseSlides = () => {
+    if (slideTimer && slidesRunning()) slideLeft = Math.max(400, slideLeft - (performance.now() - slideStart));
+    clearTimeout(slideTimer); slideTimer = null;
+    track.parentElement.classList.add("paused");
+  };
+  const showSlide = (i) => {
+    const n = slides.length;
+    cur = (i + n) % n;
+    slides.forEach((sl, k) => {
+      const d = (k - cur + n) % n;
+      sl.classList.toggle("is-active", d === 0);
+      sl.classList.toggle("is-next", d === 1);
+      sl.classList.toggle("is-prev", d === n - 1 && n > 2);
+      sl.setAttribute("aria-hidden", d !== 0);
+    });
+    dots.forEach((d, k) => { d.classList.remove("is-active"); d.setAttribute("aria-selected", k === cur); });
+    void dotsBox.offsetWidth; // restart the fill animation of the active dot
+    dots[cur].classList.add("is-active");
+    slideLeft = SLIDE_MS;
+    schedule();
+  };
+  $("#tNext").addEventListener("click", () => showSlide(cur + 1));
+  $("#tPrev").addEventListener("click", () => showSlide(cur - 1));
+  dots.forEach((d) => d.addEventListener("click", () => showSlide(+d.dataset.i)));
+  slides.forEach((sl, k) => sl.addEventListener("click", () => { if (k !== cur) showSlide(k); }));
+  // the next review sits on the reading side: right in English, left in Persian
+  track.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    showSlide(cur + ((e.key === "ArrowRight") === isEn() ? 1 : -1));
+  });
+  let swipeX = null;
+  track.addEventListener("pointerdown", (e) => { swipeX = e.clientX; });
+  track.addEventListener("pointerup", (e) => {
+    if (swipeX === null) return;
+    const dx = e.clientX - swipeX; swipeX = null;
+    if (Math.abs(dx) > 50) showSlide(cur + (dx * fwd() < 0 ? 1 : -1));
+  });
+  const stage = track.parentElement;
+  stage.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") { hovering = true; pauseSlides(); } });
+  stage.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") { hovering = false; schedule(); } });
+  stage.addEventListener("focusin", () => { hovering = true; pauseSlides(); });
+  stage.addEventListener("focusout", () => { hovering = false; schedule(); });
+  document.addEventListener("visibilitychange", () => (document.hidden ? pauseSlides() : schedule()));
+  new IntersectionObserver(([en]) => { inView = en.isIntersecting; inView ? schedule() : pauseSlides(); }, { threshold: .35 }).observe(stage);
+  showSlide(0);
 
   // Newsletter
   $("#newsForm").addEventListener("submit", (e) => {
@@ -305,17 +362,6 @@
     }, 450);
   }, 3800);
 
-  // Testimonials autoplay (pauses on hover)
-  let tPaused = false;
-  track.addEventListener("pointerenter", () => (tPaused = true));
-  track.addEventListener("pointerleave", () => (tPaused = false));
-  if (!reduceMotion) setInterval(() => {
-    if (tPaused) return;
-    const atEnd = Math.abs(track.scrollLeft) + track.clientWidth >= track.scrollWidth - 8;
-    if (atEnd) track.scrollTo({ left: 0, behavior: "smooth" });
-    else track.scrollBy({ left: fwd() * step(), behavior: "smooth" });
-  }, 4500);
-
   // Custom cursor ring + click letter burst
   if (finePointer && !reduceMotion) {
     const ringEl = $("#cursorRing");
@@ -392,7 +438,7 @@
     textNodes.forEach(({ n, fa }) => { n.nodeValue = en ? fa.replace(fa.trim(), dict[fa.trim()]) : fa; });
     attrNodes.forEach(({ el, a, fa }) => el.setAttribute(a, en ? dict[fa] : fa));
     document.title = en ? "NOVIN Language Academy" : faTitle;
-    track.scrollLeft = 0;
+    labelDots();
     $$("[data-count]").forEach((el) => (el.textContent = num(+el.dataset.count)));
     ringNum.textContent = num(75) + L("٪", "%");
     langBtn.setAttribute("aria-label", en ? "تغییر زبان به فارسی" : "Switch to English");
